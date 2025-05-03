@@ -1,0 +1,9 @@
+<launch>
+
+    <!-- Run the hoi simulation -->
+    <include file="$(find turtlebot_simulation)/launch/turtlebot_hoi.launch"/>
+    
+    <!-- Launch the task priority node -->
+    <!-- <node pkg="intervention" type="tp_algorithm.py" name="task_priority_node" output="screen" /> -->
+    
+</launch>
