@@ -5,15 +5,13 @@ class EndEffectorPositionTask:
         self.sigma_d = value.reshape(3, 1)  # desired EE position
         self.err = np.zeros((3, 1))
         self.J = np.zeros((3, 7))
-        self.error = []
 
     def update(self, robot):
         # Get current EE position
-        sigma = robot.get_ee_position()
+        sigma = robot.get_ee_position()[0:3, :]
 
         # Compute error
         self.err = self.sigma_d - sigma
-        self.error.append(np.linalg.norm(self.err))
 
         # Linear part of the Jacobian
         self.J = robot.get_jacobian()[0:3, :]

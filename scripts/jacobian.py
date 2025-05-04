@@ -1,62 +1,96 @@
-#!/usr/bin/env python3
 import numpy as np
+from forward_kinematics import compute_forward_kinematics
 
 def compute_jacobian(base_pose, q):
     """
     Inputs:
-    q: [q1, q2, q3, q4] joint angles of the arm
-    base_pose: (x_W, y_W, yaw_W) mobile base pose in the world frame
+    q: [q1, q2, q3, q4] joint angles of the arm (radians)
     Outputs:
-    J: full Jacobian that maps joint velocities to end effector velocities
+    Jacobian matrix: 3x4 (rows: x, y, z; columns: joint velocities)
     """
+    #--------------------------------- Manipulator Jacobian -------------------------#
 
-    q1, q2, q3, q4 = q[0], q[1], q[2], q[3]
-    x_W, y_W, yaw_W = base_pose
+    q1, q2, q3, q4 = q[:4]
 
-    d_base_horizontal = 13.2 / 1000.0 # horizontal distance from base to arm
-    L2 = 142 / 1000.0
-    L3 = 158.8 / 1000.0
-    d_grip = 56.6 / 1000.0
-    r = d_base_horizontal - (L2 * np.sin(q2)) + (L3 * np.cos(q3)) + d_grip
-    offset = 50.7 / 1000.0
-    total_angle = q1 + yaw_W
+    # Robot measurements in meters
+    L2 = 142 / 1000.0          
+    L3 = 158.8 / 1000.0       
+    d_grip = 56.5 / 1000.0 
+    d_base_vertical = 108 / 1000.0
+    d_base_horizontal = 13.2 / 1000.0
+    h_wrist = 72.2 / 1000.0
 
     # Trigonometric values
-    sin_yaw = np.sin(yaw_W)
-    cos_yaw = np.cos(yaw_W)
+    sin_q1 = np.sin(q1)
+    cos_q1 = np.cos(q1)
     sin_q2 = np.sin(q2)
     cos_q2 = np.cos(q2)
     sin_q3 = np.sin(q3)
     cos_q3 = np.cos(q3)
-    sin_total_angle = np.sin(total_angle)
-    cos_total_angle = np.cos(total_angle)
 
-    # Full Jacobian
-    J = np.zeros((6, 7))
+    # Compute horizontal (r) and vertical (z_E) components of planar reach
+    r = d_base_horizontal - (L2 * sin_q2) + (L3 * cos_q3) + d_grip
+    z_E = -d_base_vertical - (L2 * np.cos(q2)) - (L3 * np.sin(q3)) + h_wrist
 
-    # Base translation (x, y)
-    J[0, 0] = cos_yaw
-    J[1, 0] = sin_yaw
+    # Partial derivatives
+    dr_dq2 = -L2 * cos_q2
+    dr_dq3 = -L3 * sin_q3
+    dzE_dq2 = L2 * sin_q2
+    dzE_dq3 = -L3 * cos_q3
 
-    # Base rotation (yaw)
-    J[0, 2] =  r * cos_total_angle - (offset * sin_yaw)
-    J[1, 2] =  r * sin_total_angle + (offset * sin_yaw)
+    # Jacobian terms for x-direction
+    dx_dq1 = -r * sin_q1
+    dx_dq2 = dr_dq2 * cos_q1
+    dx_dq3 = dr_dq3 * cos_q1
 
-    # Joint 1
-    J[0, 3] =  r * cos_total_angle
-    J[1, 3] =  r * sin_total_angle
+    # Jacobian terms for y-direction
+    dy_dq1 = r * cos_q1
+    dy_dq2 = dr_dq2 * sin_q1
+    dy_dq3 = dr_dq3 * sin_q1
 
-    # Joint 2
-    J[0, 4] = -L2 * sin_total_angle * cos_q2
-    J[1, 4] =  L2 * cos_total_angle * cos_q2
-    J[2, 4] =  L2 * sin_q2
+    # Jacobian terms for z-direction
+    dz_dq1 = 0.0
+    dz_dq2 = dzE_dq2
+    dz_dq3 = dzE_dq3
 
-    # Joint 3
-    J[0, 5] = -L3 * sin_total_angle * sin_q3
-    J[1, 5] =  L3 * cos_total_angle * sin_q3
-    J[2, 5] = -L3 * cos_q3
+    # Build Jacobian
+    J_arm = np.array([
+        [dx_dq1, dx_dq2, dx_dq3, 0.0],
+        [dy_dq1, dy_dq2, dy_dq3, 0.0],
+        [dz_dq1, dz_dq2, dz_dq3, 0.0]
+    ])
 
-    # Joint 4
-    J[5, 6] = 1.0
+    #------------------------------------ Base Jacobian -----------------------------#
 
-    return J
+    # Get EE position relative to the base
+    x_E = r * np.cos(q1)
+    y_E = r * np.sin(q1)
+
+    # Get yaw angle of base
+    yaw_W = base_pose[2]
+    sin_yaw = np.sin(yaw_W)
+    cos_yaw = np.cos(yaw_W)
+
+    # Jacobian terms
+    dx_dyaw = -sin_yaw * x_E - cos_yaw * y_E
+    dy_dyaw =  cos_yaw * x_E - sin_yaw * y_E
+    dz_dyaw = 0.0
+
+    # Build Jacobian
+    J_base = np.array([
+        [1.0, 0.0, dx_dyaw],
+        [0.0, 1.0, dy_dyaw],
+        [0.0, 0.0, dz_dyaw]
+    ])
+    
+    #--------------------------------- Angular Jacobian -------------------------#
+    # !!! Placeholder
+    J_angular = np.zeros((3, 7))
+    J_angular[2, 6] = 1.0
+
+    #--------------------------------- Full Jacobian -------------------------#
+
+    J_linear = np.hstack((J_base, J_arm)) 
+    J_full = np.vstack((J_linear, J_angular))
+
+    return J_full

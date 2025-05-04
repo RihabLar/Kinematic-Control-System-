@@ -63,13 +63,14 @@ class TaskPriorityController:
         position = msg.pose.pose.position
         orientation = msg.pose.pose.orientation
         _, _, yaw = euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w])
-        self.q[0] = yaw
-        self.q[1] = position.x
-        self.q[2] = position.y
+        self.q[0] = position.x
+        self.q[1] = position.y
+        self.q[2] = yaw
 
     def run(self):
         while not rospy.is_shutdown():
             dq = self.solve()
+            
             # Get base and arm velocities from dq
             vx = dq[0, 0]   # x linear velocity
             vy = dq[1, 0]   # y linear velocity
