@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
+
 project(intervention)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -13,6 +14,25 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   tf
+  message_generation
+)
+
+
+## Generate services in the 'srv' folder
+add_service_files(
+  FILES
+  intervention.srv
+)
+
+## Generate service messages
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+)
+
+catkin_package(
+  CATKIN_DEPENDS message_runtime
 )
 
 ## System dependencies are found with CMake's conventions
@@ -193,6 +213,21 @@ include_directories(
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
+
+## Install the intervention Python package
+install(
+  DIRECTORY scripts/intervention
+  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
+  FILES_MATCHING PATTERN "*.py"
+)
+
+## Install your Python node scripts
+catkin_install_python(PROGRAMS
+  scripts/manager_node.py
+  scripts/controller.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 
 #############
 ## Testing ##

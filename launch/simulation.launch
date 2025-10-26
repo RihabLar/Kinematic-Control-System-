@@ -4,6 +4,11 @@
     <include file="$(find turtlebot_simulation)/launch/turtlebot_hoi.launch"/>
     
     <!-- Launch the task priority node -->
-    <!-- <node pkg="intervention" type="tp_algorithm.py" name="task_priority_node" output="screen" /> -->
-    
+    <node pkg="intervention" type="aruco.py" name="aruco_node" output="screen" /> 
+    <node pkg="intervention" type="manager_node.py" name="manager_node" output="screen" /> 
+    <node pkg="intervention" type="controller.py" name="tp_node" output="screen" /> 
+
+
+    <!-- 1) Start your service node -->
+
 </launch>
