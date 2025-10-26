@@ -1,66 +1,105 @@
-#Kinematic Control System for a Mobile Manipulator
+# Kinematic Control System for a Mobile Manipulator
 
-This project implements a **task-priority kinematic control system** for a mobile manipulator composed of:
-- **Kobuki TurtleBot 2** (differential drive base)
-- **uArm Swift Pro** (4-DOF manipulator with vacuum gripper)
-- Sensors: wheel encoders, RGB-D camera, 2D LiDAR
+This project implements a **Task-Priority Kinematic Control System** for a **mobile manipulator** composed of:
 
-The system was developed and tested in **ROS** and the **Stonefish simulator**, with the goal of enabling autonomous **pick-and-place tasks**.
+* *Kobuki TurtleBot 2** – differential drive mobile base
+* **uArm Swift Pro** – 4-DOF manipulator with a vacuum gripper
+* **Sensors:** wheel encoders, RGB-D camera, and 2D LiDAR
+
+Developed and tested in **ROS** and the **Stonefish simulator**, this system enables **autonomous pick-and-place operations** through coordinated control of the mobile base and manipulator.
 
 ---
 
 ## Overview
-- Uses the **Task-Priority (TP) redundancy resolution algorithm** to coordinate base and arm motion.
-- Integrates **behavior trees** for task sequencing.
-- Supports **dead reckoning** and **ArUco marker-based visual feedback** for navigation and object localization.
-- Includes **simulation-based testing** for validation before real-world deployment.
+
+The control framework integrates multiple modules for perception, motion, and behavior management:
+
+* **Task-Priority (TP)** redundancy resolution for coordinated base–arm motion
+* **Behavior Trees** for flexible and modular task sequencing
+* **Hybrid localization** using dead reckoning and **ArUco marker-based visual feedback**
+* **Simulation-based testing** prior to physical implementation
 
 ---
 
-## Features
-- Forward and inverse kinematics for the mobile manipulator.
-- Task-priority control with both **equality tasks** (end-effector position/orientation) and **inequality tasks** (joint limits, safety).
-- Pick-and-place pipeline:
-  - Move to object
-  - Pick with vacuum gripper
-  - Transport
-  - Place at target
-  - Return home
-- Hybrid navigation: odometry + vision-based corrections.
+## System Features
+
+### Kinematic Control
+
+* Implements **forward** and **inverse kinematics** for both the mobile base and manipulator
+* Supports **Task-Priority control** with:
+
+  * **Equality tasks:** end-effector position and orientation
+  * **Inequality tasks:** joint limits, workspace constraints, and safety margins
+
+### Pick-and-Place Pipeline
+
+1. Move to the object location
+2. Pick the object with the **vacuum gripper**
+3. Transport it to the target location
+4. Place the object
+5. Return to the **home configuration**
+
+### Navigation
+
+* Combines **odometry-based motion** with **vision-based corrections** for robust navigation and positioning.
 
 ---
 
-##  Results
-- Simulation showed accurate and smooth control of both base and arm.
-- End-effector errors reduced to a few millimeters.
-- Joint velocities remained within safe limits.
-- Real-world implementation was partially completed.
+## Results
+
+* Smooth and stable control of both base and arm in simulation
+* **End-effector error:** within a few millimeters
+* **Joint velocities:** maintained within safe limits
+* **Partial real-world implementation** successfully tested
 
 ---
 
-To launch the full simulation with the ArUco-based pick-and-place task:
+## Running the System
 
-1. Start the simulation environment
+### Full Simulation (ArUco-Based Pick-and-Place)
 
-   roslaunch intervention simulation.launch
+**Step 1:** Launch the simulation environment
 
-2. Run the behavior tree node
+```bash
+roslaunch intervention simulation.launch
+```
 
-    rosrun intervention behaviours_with_aruco.py
+**Step 2:** Run the behavior tree node
 
-This will initialize the robot in the simulated environment and execute the full pick-and-place task using ArUco marker detection and the task-priority control system.
+```bash
+rosrun intervention behaviours_with_aruco.py
+```
 
-To run DeadReckoning Task: 
+This will initialize the robot in the simulated environment and execute the complete **pick-and-place task** using **ArUco marker detection** and **task-priority control**.
 
-1. Start the simulation environment
+---
 
-   roslaunch intervention simulation.launch
+### Dead Reckoning Task
 
-2. Run DeadReckoning node
+**Step 1:** Launch the simulation environment
 
-    rosrun intervention DeadReckoning.py
+```bash
+roslaunch intervention simulation.launch
+```
 
-3. Run the behavior tree node
+**Step 2:** Run the Dead Reckoning node
 
-    rosrun intervention behaviours_with_aruco.py
+```bash
+rosrun intervention DeadReckoning.py
+```
+
+**Step 3:** Run the behavior tree node
+
+```bash
+rosrun intervention behaviours_with_aruco.py
+```
+
+---
+
+## Dependencies
+
+* [ROS (Robot Operating System)](https://www.ros.org/)
+* [Stonefish Simulator](https://github.com/rapyuta-robotics/stonefish)
+* Python 3.x
+* `numpy`, `rospy`, `tf`, `cv2`, `aruco`
 
