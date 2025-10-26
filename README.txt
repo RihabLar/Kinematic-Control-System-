@@ -1,4 +1,4 @@
-# Kinematic Control System for a Mobile Manipulator
+#Kinematic Control System for a Mobile Manipulator
 
 This project implements a **task-priority kinematic control system** for a mobile manipulator composed of:
 - **Kobuki TurtleBot 2** (differential drive base)
